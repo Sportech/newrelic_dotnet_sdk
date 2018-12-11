@@ -15,8 +15,6 @@ namespace NewRelic.Platform.Sdk
     {
         private const string ConfigurationFilePath = @"config\plugin.json";
 
-        private static Logger s_log = Logger.GetLogger("AgentFactory");
-
         internal List<Agent> CreateAgents()
         {
             List<object> agentConfigurations = ReadJsonFile();

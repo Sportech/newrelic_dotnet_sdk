@@ -11,9 +11,6 @@ namespace NewRelic.Platform.Sdk.Binding
         private RequestData _requestData;
         private string _licenseKey;
         private readonly INewRelicConfig _newRelicConfig;
-
-        private static Logger s_log = Logger.GetLogger("Context");
-
         internal string ServiceUri
         {
             get
@@ -74,8 +71,6 @@ namespace NewRelic.Platform.Sdk.Binding
             this._licenseKey = licenseKey;
             this._requestData = new RequestData();
 
-            s_log.Debug("Using service URL: {0}", this.ServiceUri);
-            s_log.Debug("Using license key: {0}", this.LicenseKey);
         }
 
         /// <summary>
@@ -88,7 +83,6 @@ namespace NewRelic.Platform.Sdk.Binding
         /// <param name="value">The non-negative float value representing this value</param>
         public void ReportMetric(string guid, string componentName, string metricName, string units, float? value)
         {
-            s_log.Debug("Reporting metric: {0} -> {1}[{2}]={3}", componentName, metricName, units, value);
             if (string.IsNullOrEmpty(guid))
             {
                 throw new ArgumentNullException("guid", "Null parameter was passed to ReportMetric()");
@@ -135,7 +129,6 @@ namespace NewRelic.Platform.Sdk.Binding
         /// <param name="sumOfSquares">The non-negative float value representing the sum of square values for this poll cycle</param>
         public void ReportMetric(string guid, string componentName, string metricName, string units, float value, int count, float min, float max, float sumOfSquares)
         {
-            s_log.Debug("Reporting metric: {0} -> {1}[{2}]={3}", componentName, metricName, units, value);
             if (string.IsNullOrEmpty(guid))
             {
                 throw new ArgumentNullException("guid", "Null parameter was passed to ReportMetric()");
@@ -176,7 +169,6 @@ namespace NewRelic.Platform.Sdk.Binding
         /// </summary>
         public void SendMetricsToService()
         {
-            s_log.Info("Preparing to send metrics to service");
 
             // Check to see if the Agent data is valid before sending data
             if (!ValidateRequestData())
@@ -193,7 +185,6 @@ namespace NewRelic.Platform.Sdk.Binding
             using (var writer = new StreamWriter(request.GetRequestStream()))
             {
                 var str = JsonHelper.Serialize(_requestData.Serialize());
-                s_log.Debug("Sending JSON: {0}", str);
                 writer.Write(str);
             }
 
@@ -205,7 +196,6 @@ namespace NewRelic.Platform.Sdk.Binding
             // Do not send any data if no agents reported
             if (!_requestData.HasComponents())
             {
-                s_log.Info("No metrics reported for this poll cycle, continuing...");
                 _requestData.Reset(); // Reset the aggregation timer
                 return false;
             }
@@ -213,7 +203,6 @@ namespace NewRelic.Platform.Sdk.Binding
             // Reset the agent data if we have been aggregating for too long
             if (_requestData.IsPastAggregationLimit())
             {
-                s_log.Warn("The service has not been successfully contacted in several minutes.  Starting a fresh aggregation cycle.");
                 _requestData.Reset(); // Reset the aggregation timer
                 return false;
             }
@@ -231,7 +220,6 @@ namespace NewRelic.Platform.Sdk.Binding
                     {
                         if (response.StatusCode == HttpStatusCode.OK)
                         {
-                            s_log.Info("Metrics successfully sent");
                             // Reset aggregation after successful delivery
                             _requestData.Reset();
                         }
@@ -251,21 +239,15 @@ namespace NewRelic.Platform.Sdk.Binding
                             if( response.StatusCode == HttpStatusCode.ServiceUnavailable )
                             {
                                 // Collector is being updated
-                                s_log.Info( "New Relic Service is currently undergoing an upgrade" );
                             }
                             else if( response.StatusCode == HttpStatusCode.Forbidden
                                 && string.Equals( Constants.DisableNewRelic, body ) )
                             {
                                 // Remotely disabled
-                                s_log.Fatal( "Remotely disabled by New Relic service" );
-                                throw new NewRelicServiceException( response.StatusCode, "Remotely disabled by New Relic Service", we );
                             }
                             else
                             {
                                 // Log unknown exception
-                                s_log.Error( "Unexpected response from the New Relic service. StatusCode: {0} ({1}), BodyContents: {2}",
-                                    response.StatusCode, response.StatusDescription, body );
-
                                 // Rethrow if this is a client exception, keep trying if it is a server error
                                 if( (int)response.StatusCode >= 400 && (int)response.StatusCode < 500 )
                                 {
@@ -278,7 +260,6 @@ namespace NewRelic.Platform.Sdk.Binding
                 else
                 {
                     // Log unknown exception
-                    s_log.Error( "No response from the New Relic service." );
                 }
             } // End catch()
         } // End HandleServiceResponse()

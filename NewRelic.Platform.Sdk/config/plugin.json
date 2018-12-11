@@ -1,0 +1,9 @@
+{
+  "agents": [
+    {
+      "name": "AgentName1",
+      "host": "host1.com",
+      "port": 8080
+    }
+  ]
+}

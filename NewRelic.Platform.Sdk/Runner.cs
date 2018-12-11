@@ -15,7 +15,6 @@ namespace NewRelic.Platform.Sdk
         private List<Agent> _agents;
         private readonly INewRelicConfig newRelicConfig;
 
-        private static Logger s_log = Logger.GetLogger("Runner");
 
         public Runner(INewRelicConfig config = null)
         {
@@ -47,7 +46,6 @@ namespace NewRelic.Platform.Sdk
                 throw new ArgumentNullException("agent", "You must pass in a non-null agent");
             }
 
-            s_log.Info("Adding new agent: {0}", agent.GetAgentName());
             _agents.Add(agent);
         }
 
@@ -64,7 +62,6 @@ namespace NewRelic.Platform.Sdk
                 throw new ArgumentNullException("factory", "You must pass in a non-null factory");
             }
 
-            s_log.Info("Adding new factory {0}", factory.GetType());
             _factories.Add(factory);
         }
 
@@ -107,7 +104,6 @@ namespace NewRelic.Platform.Sdk
                 }
                 catch(Exception e) 
                 {
-                    s_log.Error("Error error occurred during PollCycle", e);
                 }
 
                 try 
@@ -124,7 +120,6 @@ namespace NewRelic.Platform.Sdk
                 }
                 catch (Exception e)
                 {
-                    s_log.Fatal("Fatal error occurred. Shutting down the application", e);
                     throw e;
                 }
             }
